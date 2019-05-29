@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <payment>
+            <coincorner_bitcoincheckout>
+                <title>Bitcoin Checkout</title>
+                <model>CoinCorner\BitcoinCheckout\Model\BitcoinCheckout</model>
+                <active>1</active>
+                <coincorner_pending_payment>pending_payment</coincorner_pending_payment>
+                <coincorner_pending_confirmation>processing</coincorner_pending_confirmation>
+                <coincorner_complete>complete</coincorner_complete>
+                <coincorner_cancelled>canceled</coincorner_cancelled>
+                <coincorner_refunded>canceled</coincorner_refunded>
+            </coincorner_bitcoincheckout>
+        </payment>
+    </default>
+</config>
+
