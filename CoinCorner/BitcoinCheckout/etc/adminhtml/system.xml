@@ -29,27 +29,35 @@
                     <label>CoinCorner User Id</label>
                 </field>
 
-                <field id="coincorner_pending_payment" translate="label" type="select" sortOrder="6" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="coincorner_invoicecurrency" translate="label" type="text" sortOrder="6" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Invoice Currency</label>
+                </field>
+
+                <field id="coincorner_settlecurrency" translate="label" type="text" sortOrder="7" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Settle Currency</label>
+                </field>
+
+                <field id="coincorner_pending_payment" translate="label" type="select" sortOrder="8" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Pending Payment - Order Status</label>
                     <source_model>Magento\Sales\Model\ResourceModel\Order\Status\Collection</source_model>
                 </field>
 
-                <field id="coincorner_pending_confirmation" translate="label" type="select" sortOrder="7" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="coincorner_pending_confirmation" translate="label" type="select" sortOrder="9" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Pending Confirmation - Order Status</label>
                     <source_model>Magento\Sales\Model\ResourceModel\Order\Status\Collection</source_model>
                 </field>
 
-                <field id="coincorner_complete" translate="label" type="select" sortOrder="8" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="coincorner_complete" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Complete - Order Status</label>
                     <source_model>Magento\Sales\Model\ResourceModel\Order\Status\Collection</source_model>
                 </field>
 
-                <field id="coincorner_cancelled" translate="label" type="select" sortOrder="9" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="coincorner_cancelled" translate="label" type="select" sortOrder="11" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Expired/Cancelled - Order Status</label>
                     <source_model>Magento\Sales\Model\ResourceModel\Order\Status\Collection</source_model>
                 </field>
 
-                <field id="coincorner_refunded" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="coincorner_refunded" translate="label" type="select" sortOrder="12" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Refunded - Order Status</label>
                     <source_model>Magento\Sales\Model\ResourceModel\Order\Status\Collection</source_model>
                 </field>

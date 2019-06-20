@@ -7,6 +7,8 @@
                 <title>Bitcoin Checkout</title>
                 <model>CoinCorner\BitcoinCheckout\Model\BitcoinCheckout</model>
                 <active>1</active>
+                <coincorner_invoicecurrency>GBP</coincorner_invoicecurrency>
+                <coincorner_settlecurrency>GBP</coincorner_settlecurrency>
                 <coincorner_pending_payment>pending_payment</coincorner_pending_payment>
                 <coincorner_pending_confirmation>processing</coincorner_pending_confirmation>
                 <coincorner_complete>complete</coincorner_complete>

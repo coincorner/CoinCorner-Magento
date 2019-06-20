@@ -79,13 +79,16 @@ class CreateBitcoinOrder extends Action
             $message = strval($nonce) . strval($account_id) . strval($api_key);
             $api_sig = strtolower(hash_hmac('sha256', $message, $api_secret));
     
-            
+            $invoice_currency = strtoupper($this->scopeConfig->getValue('payment/coincorner_bitcoincheckout/coincorner_invoicecurrency', \Magento\Store\Model\ScopeInterface::SCOPE_STORE));
+            $settle_currency = strtoupper($this->scopeConfig->getValue('payment/coincorner_bitcoincheckout/coincorner_settlecurrency', \Magento\Store\Model\ScopeInterface::SCOPE_STORE));
+
             $data = array(
                 'APIKey' => $api_key,
                 'Signature' => $api_sig,
                 'Nonce' => $nonce,
-                'Currency' => 'GBP',
-                'Amount' => number_format($order->getGrandTotal(), 2, '.', ''),
+                'InvoiceCurrency' => $invoice_currency,
+                'InvoiceAmount' => number_format($order->getGrandTotal(), 2, '.', ''),
+                'SettleCurrency' => $settle_currency,
                 'NotificationURL' => $this->urlBuilder->getUrl('coincorner/payment/callback'),
                 'ItemDescription' => substr($description, 0, 255),
                 'ItemCode' => '',
