@@ -70,61 +70,71 @@ class Callback extends Action
                     'OrderId' => $merchant_order->getIncrementId()
                 );
     
-                $options = array(
-                    'http' => array(
-                        'header' => "Content-type: application/x-www-form-urlencoded\r\n",
-                        'method' => 'POST',
-                        'content' => http_build_query($data)
-                    )
-                );
-    
-                $context  = stream_context_create($options);
-                $ccresponse = json_decode(file_get_contents('https://checkout.coincorner.com/api/CheckOrder', false, $context), true);
-    
-                switch ($ccresponse["OrderStatusText"]) 
-                {
-                    case 'Complete':
-                        $order_status = $this->scopeConfig->getValue('payment/coincorner_bitcoincheckout/coincorner_complete', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
-                        $merchant_order->setState($order_status);
-                        $merchant_order->setStatus($order_status);
-                        $merchant_order->addStatusHistoryComment('Payment is confirmed on the network, and has been credited to the merchant.');
-                        break;
-                    case 'Pending Confirmation':
-                        $order_status = $this->scopeConfig->getValue('payment/coincorner_bitcoincheckout/coincorner_pending_confirmation', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
-                        $merchant_order->setState($order_status);
-                        $merchant_order->setStatus($order_status);
-                        $merchant_order->addStatusHistoryComment('Payment has been made, pending confirmation.');
-                        break;
-                    case 'Expired':
-                        $order_status = $this->scopeConfig->getValue('payment/coincorner_bitcoincheckout/coincorner_cancelled', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
-                        $merchant_order->setState($order_status);
-                        $merchant_order->setStatus($order_status);
-                        $merchant_order->addStatusHistoryComment('Buyer did not pay within the required time and the invoice expired.');
-                        break;
-                    case 'Cancelled':
-                        $order_status = $this->scopeConfig->getValue('payment/coincorner_bitcoincheckout/coincorner_cancelled', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
-                        $merchant_order->setState($order_status);
-                        $merchant_order->setStatus($order_status);
-                        $merchant_order->addStatusHistoryComment('This order has been canceled.');
-                        break;
-                    case 'Refunded':
-                        $order_status = $this->scopeConfig->getValue('payment/coincorner_bitcoincheckout/coincorner_refunded', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
-                        $merchant_order->setState($order_status);
-                        $merchant_order->setStatus($order_status);
-                        $merchant_order->addStatusHistoryComment('Payment was refunded to the buyer.');
-                        break;
-                    case 'N/A':
-                        break;
+                $url  = 'https://checkout.coincorner.com/api/CheckOrder';
+                $curl = curl_init();
+                $curl_options = array(CURLOPT_RETURNTRANSFER => 1,CURLOPT_URL  => $url);
+                $headers[] = 'Content-Type: application/x-www-form-urlencoded';
+                array_merge($curl_options, array(CURLOPT_POST => 1));
+                curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($data));
+
+                curl_setopt_array($curl, $curl_options);
+                curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+                curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
+
+                $ccresponse = json_decode(curl_exec($curl), TRUE);
+                $http_status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+
+                if($http_status != 200) {
+
+                    http_response_code(400);
+                    $this->getResponse()->setBody('FAIL');
                 }
-    
-                $merchant_order->save();
-    
-    
+                else {
+
+
+                    switch ($ccresponse["OrderStatusText"]) 
+                    {
+                        case 'Complete':
+                            $order_status = $this->scopeConfig->getValue('payment/coincorner_bitcoincheckout/coincorner_complete', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+                            $merchant_order->setState($order_status);
+                            $merchant_order->setStatus($order_status);
+                            $merchant_order->addStatusHistoryComment('Payment is confirmed on the network, and has been credited to the merchant.');
+                            break;
+                        case 'Pending Confirmation':
+                            $order_status = $this->scopeConfig->getValue('payment/coincorner_bitcoincheckout/coincorner_pending_confirmation', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+                            $merchant_order->setState($order_status);
+                            $merchant_order->setStatus($order_status);
+                            $merchant_order->addStatusHistoryComment('Payment has been made, pending confirmation.');
+                            break;
+                        case 'Expired':
+                            $order_status = $this->scopeConfig->getValue('payment/coincorner_bitcoincheckout/coincorner_cancelled', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+                            $merchant_order->setState($order_status);
+                            $merchant_order->setStatus($order_status);
+                            $merchant_order->addStatusHistoryComment('Buyer did not pay within the required time and the invoice expired.');
+                            break;
+                        case 'Cancelled':
+                            $order_status = $this->scopeConfig->getValue('payment/coincorner_bitcoincheckout/coincorner_cancelled', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+                            $merchant_order->setState($order_status);
+                            $merchant_order->setStatus($order_status);
+                            $merchant_order->addStatusHistoryComment('This order has been canceled.');
+                            break;
+                        case 'Refunded':
+                            $order_status = $this->scopeConfig->getValue('payment/coincorner_bitcoincheckout/coincorner_refunded', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+                            $merchant_order->setState($order_status);
+                            $merchant_order->setStatus($order_status);
+                            $merchant_order->addStatusHistoryComment('Payment was refunded to the buyer.');
+                            break;
+                        case 'N/A':
+                            break;
+                    }
+        
+                    $merchant_order->save();
+                }
             }
         }
         catch (Exception $e) {
-           
-
+            http_response_code(400);
+            $this->getResponse()->setBody('FAIL');
         }
        
         $this->getResponse()->setBody('OK');

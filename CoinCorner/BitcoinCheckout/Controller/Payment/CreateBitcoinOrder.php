@@ -97,32 +97,59 @@ class CreateBitcoinOrder extends Action
                 'OrderId' => $order->getIncrementId()
             );
             
-            $options = array(
-                'http' => array(
-                    'header' => "Content-type: application/x-www-form-urlencoded\r\n",
-                    'method' => 'POST',
-                    'content' => http_build_query($data)
-                )
-            );
-            
-            $context  = stream_context_create($options);
-            $ccresponse = json_decode(file_get_contents('https://checkout.coincorner.com/api/CreateOrder', false, $context), true);
-    
-            $invoice = explode("/Checkout/", $ccresponse);
-    
-            if (count($invoice) < 2) 
-            {
-                return ['status' => false];
-            } 
-            else 
-            {
-                $order_status = $this->scopeConfig->getValue('payment/coincorner_bitcoincheckout/coincorner_pending_payment', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+            $url  = 'https://checkout.coincorner.com/api/CreateOrder';
+            $curl = curl_init();
+            $curl_options = array(CURLOPT_RETURNTRANSFER => 1,CURLOPT_URL  => $url);
+            $headers[] = 'Content-Type: application/x-www-form-urlencoded';
+            array_merge($curl_options, array(CURLOPT_POST => 1));
+            curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($data));
+
+            curl_setopt_array($curl, $curl_options);
+            curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
+
+            $ccresponse = json_decode(curl_exec($curl), TRUE);
+            $http_status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+
+
+            if($http_status != 200) {
+                
+                $error_message = $ccresponse["Message"];
+
+                $order_status = $this->scopeConfig->getValue('payment/coincorner_bitcoincheckout/coincorner_cancelled', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
                 $order->setState($order_status);
                 $order->setStatus($order_status);
-                $order->addStatusHistoryComment('Bitcoin order created, waiting for payment.');
+                $order->addStatusHistoryComment('Payment could not be started, CoinCorner returned an error: ' . $error_message);
                 $order->save();
+                
+                return ['status' => false];
+            }
+            else {
+
+                $invoice = explode("/Checkout/", $ccresponse);
     
-                return ['status' => true, 'payment_url' =>  $ccresponse];
+                if (count($invoice) < 2) 
+                {
+
+                    $order_status = $this->scopeConfig->getValue('payment/coincorner_bitcoincheckout/coincorner_cancelled', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+                    $order->setState($order_status);
+                    $order->setStatus($order_status);
+                    $order->addStatusHistoryComment('Payment could not be started, CoinCorner returned an error.');
+                    $order->save();
+
+                    return ['status' => false];
+                } 
+                else 
+                {
+                    $order_status = $this->scopeConfig->getValue('payment/coincorner_bitcoincheckout/coincorner_pending_payment', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+                    $order->setState($order_status);
+                    $order->setStatus($order_status);
+                    $order->addStatusHistoryComment('Bitcoin order created, waiting for payment.');
+                    $order->save();
+        
+                    return ['status' => true, 'payment_url' =>  $ccresponse];
+                }
+
             }
         }
         catch(Exception $e) 
